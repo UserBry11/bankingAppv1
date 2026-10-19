@@ -1,0 +1,10 @@
+# Defines what a User looks like to the frontend
+type User {
+    id: ID!
+    name: String!
+}
+
+# Defines the entry point for fetching data
+type Query {
+    allUsers: [User!]!
+}
