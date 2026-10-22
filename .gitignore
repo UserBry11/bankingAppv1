@@ -1,3 +1,18 @@
+# Node dependencies
+node_modules/
+dist/
+.env.local
+
+# Java build files
+target/
+build/
+*.class
+
+# IDE configurations
+.idea/
+.metadata/
+*.iml
+
 # Compiled class file
 *.class
 
