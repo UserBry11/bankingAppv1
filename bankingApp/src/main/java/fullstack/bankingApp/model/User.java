@@ -1,17 +1,31 @@
 package fullstack.bankingApp.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name="app_users")
 public class User {
 
-    @Id @GeneratedValue public long id;
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    public long id;
+
+    @Column(unique=true)
+    public String username;
+
     public String name;
 
+    @Column(name = "password_hash")
+    public String passwordHash;
+
     public User(){};
-    public User(String name){this.name=name;}
+
+    public User(String username, String name, String passwordHash){
+
+        this.username = username;
+        this.name = name;
+        this.passwordHash = passwordHash;
+    }
+
 }
