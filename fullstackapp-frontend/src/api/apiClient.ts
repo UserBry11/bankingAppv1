@@ -14,6 +14,6 @@ export type CsrfResponse = {
 }
 
 export async function getCsrfToken(): Promise<CsrfResponse> {
-    const response = await apiClient.get<CsrfResponse>("/api/auth/Csrf");
+    const response = await apiClient.get<CsrfResponse>("/api/auth/csrf");
     return response.data;
 }

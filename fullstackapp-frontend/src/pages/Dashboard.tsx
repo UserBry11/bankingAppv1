@@ -1,77 +1,106 @@
+
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { apiClient } from "../api/apiClient";
+import LogoutButton from "../components/LogoutButton";
 
 type Account = {
-    accountId: number;
-    accountType: string,
-    lastFourDigits: string,
-    balance: number;
-    currency: string,
-}
+  accountId: number;
+  accountType: string;
+  lastFourDigits: string;
+  balance: number;
+  currency: string;
+};
 
-export default function DashboardPage(){
-    const [accounts, setAccounts] = useState<Account[]>([{"accountId": 1234, "accountType": "Savings", "lastFourDigits": "7432", "balance": 3882.73, "currency": "USD"}, {"accountId": 3829, "accountType": "Checking", "lastFourDigits": "9823", "balance": 2433.33, "currency": "CAD"}]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
+export default function DashboardPage() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        async function loadAccounts(){
-            try {
-                setLoading(true);
-                const response = await axios.get<Account[]>("http://localhost:8080/api/accounts");
-                setAccounts(response.data);
-            } catch {
-                setError("Unable to load your accounts. Please try again.");
-            } finally {
-                setLoading(false);
-            }
+  useEffect(() => {
+    async function loadAccounts() {
+      try {
+        setLoading(true);
+        setError("");
 
+        const response =
+          await apiClient.get<Account[]>("/api/accounts");
 
+        if (!Array.isArray(response.data)) {
+          throw new Error("The accounts API did not return an array.");
         }
-        loadAccounts();
-    },[]);
 
-    function formatBalance(balance: number, currency: string){
-
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency,
-        }).format(balance);
+        setAccounts(response.data);
+      } catch (err) {
+        console.error("Failed to load accounts:", err);
+        setError("Unable to load your accounts. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
 
-    return (
-        <main>
-            <h1>Customer Dashboard</h1>
-            <p>Consumer &amp; Community Banking</p>
+    void loadAccounts();
+  }, []);
 
-            <Link to="/support">
-                <button>Contact Support</button>
-            </Link>
+  function formatBalance(balance: number, currency: string) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+    }).format(balance);
+  }
 
-            <h2>Your accounts</h2>
+  return (
+    <main className="container py-4">
+      <header>
+        <h1>Customer Dashboard</h1>
+        <p>Consumer &amp; Community Banking</p>
+        <LogoutButton />
+      </header>
 
-            {loading && <p>Loading accounts...</p>}
-            {error && (<div role="alert">{error}</div>)}
+      <section aria-labelledby="accounts-heading" className="my-4">
+        <h2 id="accounts-heading">Your accounts</h2>
 
-            {!loading && !error && (
-                <div>
-                    {accounts.map((account) => (
-                        <div key={account.accountId}>
-                            <h3>{account.accountType} account</h3>
-                            <p>Account ending in: {account.lastFourDigits}</p>
-                            <p>{formatBalance(account.balance, account.currency)}</p>
-                        </div>
-                    ))}
-                </div>
-            )}
+        {loading && <p role="status">Loading accounts...</p>}
 
+        {error && (
+          <div role="alert">
+            <p>{error}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
-            <section>
-                <h2>Need help?</h2><p>Have a question about your checking or savings account?</p>
-                <Link to="/support"><button>Submit a support request</button></Link>
-            </section>
+        {!loading && !error && accounts.length === 0 && (
+          <p>You don't have any accounts to display yet.</p>
+        )}
 
-        </main>
-    )
+        {!loading && !error && accounts.length > 0 && (
+          <div>
+            {accounts.map((account) => (
+              <article key={account.accountId} className="card p-3 mb-3">
+                <h3>{account.accountType} account</h3>
+                <p>Account ending in: {account.lastFourDigits}</p>
+                <p>
+                  Balance:{" "}
+                  {formatBalance(account.balance, account.currency)}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="support-heading" className="my-4">
+        <h2 id="support-heading">Need help?</h2>
+        <p>
+          Have a question about your checking or savings account?
+        </p>
+        <Link to="/support">Submit a support request</Link>
+      </section>
+    </main>
+  );
 }
