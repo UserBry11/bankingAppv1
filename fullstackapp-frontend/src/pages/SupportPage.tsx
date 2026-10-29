@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import LogoutButton from "../components/LogoutButton";
 
 export default function SupportPage() {
     const [category, setCategory] = useState<string>("Account inquiry");
@@ -33,6 +34,7 @@ export default function SupportPage() {
           </Link>
 
           <h1>Customer support</h1>
+          <LogoutButton />
           <p>How can our Consumer &amp; Community Banking team help?</p>
 
           <form onSubmit={handleSubmit}>
@@ -89,7 +91,7 @@ export default function SupportPage() {
           </form>
         <section>==============================================</section>
         <p role="alert">
-            <text>Message response: {message}</text>
+            <span>Message response: {message}</span>
         </p>
         </main>
     )
