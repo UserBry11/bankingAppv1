@@ -1,0 +1,32 @@
+name: Build and Deploy to Azure Web App
+on:
+  push:
+    branches:
+      - main #This fires the pipeline everytime you push code to main
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Pull down my latest code into the GitHub virtual builder environment
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # Step 2: Setup your runtime environment (Example using Node.js)
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Change to match your exact version
+
+    # Step 3: Install dependencies and build frontend/backend
+    - name: Install Dependencies and Build
+      run: | 
+        npm install 
+        npm run build --if-present
+
+    # Step 4: Securely zip and upload the final code to Azure
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'my-banking-app' # Use my exact Azure Web App name
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
