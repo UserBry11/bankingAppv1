@@ -47,9 +47,18 @@ export async function loginUser(request: LoginRequest): Promise<void> {
     );
 }
 
-export async function getCurrentUser(): Promise<AuthUser>{
-    const response = await apiClient.get<AuthUser>("/api/auth/me");
-    return response.data;
+export async function getCurrentUser(): Promise<AuthUser | null>{
+    try {
+        const response = await apiClient.get<AuthUser>("/api/auth/me");
+
+        if(response.data && (response.data.id || response.data.username)){
+            return response.data;
+        }
+        return null;
+    } catch (error){
+        console.warn("User session endpoint returned an authentication error status.");
+        return null;
+    }
 }
 
 export async function logoutUser(): Promise<void>{
