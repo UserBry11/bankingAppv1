@@ -26,15 +26,19 @@ export default function DashboardPage() {
         const response =
           await apiClient.get<Account[]>("/api/accounts");
 
-        if (!Array.isArray(response.data)) {
-          throw new Error("The accounts API did not return an array.");
+        if(response.data && Array.isArray(response.data)){
+          setAccounts(response.data);
         }
 
-        setAccounts(response.data);
-      } catch (err) {
+        else {
+          setAccounts([]);
+        }
+      } 
+      catch (err) {
         console.error("Failed to load accounts:", err);
         setError("Unable to load your accounts. Please try again.");
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     }
