@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.List;
 
-int crashMe = 10 / 0;
-
 @RestController
 @RequestMapping("/api/accounts")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -17,6 +15,7 @@ public class AccountController {
 
     @GetMapping
     public List<AccountResponse> getAccounts(){
+        int crashMe = 10 / 0;
         return List.of(
                 new AccountResponse(1l, "Checking", "4821", new BigDecimal("2485.60"), "USD"),
                 new AccountResponse(2l, "Savings", "7316", new BigDecimal("8920.00"), "USD")
