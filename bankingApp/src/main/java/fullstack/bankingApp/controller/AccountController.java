@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.List;
 
+int crashMe = 10 / 0;
+
 @RestController
 @RequestMapping("/api/accounts")
 @CrossOrigin(origins = "http://localhost:5173")
