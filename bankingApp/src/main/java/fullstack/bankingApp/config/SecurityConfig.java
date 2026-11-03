@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/index.html","/assets/**", "/static/**", "/*.js","/*.css","/*.ico","/*.png").permitAll()
+                        .requestMatchers("/","/index.html","/assets/**", "/static/**", "/*.js","/*.css","/*.ico","/*.png", "/*.svg").permitAll()
                         .requestMatchers(
                                 "/api/auth/csrf",
                                 "/api/auth/register",
@@ -104,7 +104,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://azurewebsites.net"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://my-banking-app-c9fkfgg0gyfjczch.westus3-01.azurewebsites.net" // Fixed here
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
