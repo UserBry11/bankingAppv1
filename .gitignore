@@ -40,3 +40,15 @@ hs_err_pid*
 replay_pid*
 
 cloud/
+
+# Local terraform runtime binaries and cached plugins
+.terraform/
+.terraform.lock.hcl
+
+# Local state tracking files "THESE CONTAIN MY PLAIN-TEXT SECRETS"
+*.tfstate
+*.tfstate.backup
+
+# Local plan files
+tfplan
+plan_debug.txt
