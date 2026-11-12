@@ -5,7 +5,15 @@ terraform {
       version = "~> 3.0"
     }
   }
+  backend "azurerm" {
+    resource_group_name = "my-practice-group"
+    storage_account_name = "bryanstate2026v1"
+    container_name = "tfstate"
+    key = "banking-enterprise.terraform.tfstate"
 }
+}
+
+
 
 provider "azurerm" {
   features {}
@@ -29,9 +37,22 @@ resource "azurerm_postgresql_flexible_server" "banking_db" {
   administrator_login = "admindb"
   administrator_password = "10Password!"
 
+  # delegated_subnet_id   = azurerm_subnet.db_subnet.id
+  # private_dns_zone_id   = azurerm_private_dns_zone.postgres_dns.id
+  public_network_access_enabled = true
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.dns_vnet_link, azurerm_subnet.db_subnet]
+
   lifecycle {
     ignore_changes = [version, zone]
   }
+}
+
+resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure" {
+    name = "AllowAzureServices"
+    server_id = azurerm_postgresql_flexible_server.banking_db.id
+    start_ip_address = "0.0.0.0"
+    end_ip_address = "0.0.0.0"
 }
 
 # Definition for your existing App Service Plan
@@ -51,8 +72,13 @@ resource "azurerm_linux_web_app" "banking_app" {
   service_plan_id     = azurerm_service_plan.app_plan.id
   https_only          = true
 
+  virtual_network_subnet_id = azurerm_subnet.app_subnet.id
+
+  depends_on = [azurerm_subnet.app_subnet]
+
   site_config {
     ftps_state = "FtpsOnly"
+    vnet_route_all_enabled = true
   }
 
   identity {
@@ -63,7 +89,8 @@ resource "azurerm_linux_web_app" "banking_app" {
     "SPRING_DATASOURCE_DRIVER_CLASS_NAME"        = "org.postgresql.Driver"
     "SPRING_DATASOURCE_USERNAME"                 = "admindb"
     "SPRING_DATASOURCE_PASSWORD"                 = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.db_password.id})"
-    "SPRING_DATASOURCE_URL"                      = "jdbc:postgresql://bryan-banking-db-v1.banking.postgres.database.azure.com:5432/postgres?sslmode=require"
+    "SPRING_DATASOURCE_URL" = "jdbc:postgresql://bryan-banking-db-v1.postgres.database.azure.com:5432/postgres?sslmode=require"
+    # "SPRING_DATASOURCE_URL"                      = "jdbc:postgresql://bryan-banking-db-v1.banking.postgres.database.azure.com:5432/postgres?sslmode=require"
     "VITE_API_BASE_URL"                          = "https://azurewebsites.net"
     "APPINSIGHTS_INSTRUMENTATIONKEY"             = "d2a48200-a877-4d59-8517-408af4f0b67c"
     "APPLICATIONINSIGHTS_CONNECTION_STRING"      = "InstrumentationKey=d2a48200-a877-4d59-8517-408af4f0b67c;IngestionEndpoint=https://azure.com"
@@ -76,7 +103,7 @@ resource "azurerm_linux_web_app" "banking_app" {
 resource "azurerm_virtual_network" "banking_vnet" {
   name                = "banking-enterprise-vnet"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.practice_rg.location
+  location            = "westus3"
   resource_group_name = azurerm_resource_group.practice_rg.name
 }
 
@@ -108,7 +135,7 @@ resource "azurerm_subnet" "db_subnet" {
     name = "postgres-delegation"
     service_delegation {
       name    = "Microsoft.DBforPostgreSQL/flexibleServers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -174,4 +201,23 @@ resource "azurerm_role_assignment" "webapp_kv_reader" {
   
   # 🛠️ FIXED: Swap this string to consume the dynamic data source value instead
   principal_id         = data.azurerm_linux_web_app.banking_app_data.identity.0.principal_id
+}
+
+# A. Build a cheap, basic storage account to hold your tracking maps
+resource "azurerm_storage_account" "tf_state_storage" {
+  name                     = "bryanstate2026v1" # Must be lowercase letters & numbers only!
+  resource_group_name      = azurerm_resource_group.practice_rg.name
+  location                 = azurerm_resource_group.practice_rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS" 
+  min_tls_version          = "TLS1_2"
+}
+
+# B. Create the physical folder container inside that storage account
+resource "azurerm_storage_container" "tf_state_container" {
+  name                  = "tfstate"
+  
+  # 🛠️ FIXED: Swap storage_account_id out for storage_account_name
+  storage_account_name  = azurerm_storage_account.tf_state_storage.name
+  container_access_type = "private" 
 }
