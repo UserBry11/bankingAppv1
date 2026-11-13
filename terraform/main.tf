@@ -31,11 +31,11 @@ resource "azurerm_postgresql_flexible_server" "banking_db" {
   location            = "westus3"
   
   version             = "16"                 
-  sku_name            = "GP_Standard_D4ads_v5" 
-  storage_mb          = 131072               
-  storage_tier        = "P10"
+  sku_name            = "GP_Standard_D2ads_v5" 
+  storage_mb          = 32768               
+  storage_tier        = "P4"
   administrator_login = "admindb"
-  administrator_password = "10Password!"
+  administrator_password = var.db_admin_password
 
   # delegated_subnet_id   = azurerm_subnet.db_subnet.id
   # private_dns_zone_id   = azurerm_private_dns_zone.postgres_dns.id
@@ -174,7 +174,7 @@ resource "azurerm_key_vault" "banking_vault" {
 # 3. Securely vaulting your active database secret connection key
 resource "azurerm_key_vault_secret" "db_password" {
   name         = "spring-datasource-password"
-  value        = "10Password!" 
+  value        = var.db_admin_password
   key_vault_id = azurerm_key_vault.banking_vault.id
 }
 

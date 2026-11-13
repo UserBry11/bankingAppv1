@@ -52,3 +52,9 @@ cloud/
 # Local plan files
 tfplan
 plan_debug.txt
+
+# Terraform sensitive files
+*.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
